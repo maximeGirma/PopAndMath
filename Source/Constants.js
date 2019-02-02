@@ -1,0 +1,5 @@
+export const GAME_OVER_REASONS = {
+    TIME: "TIME_OVER",
+    MISS_CLICK : "MISS_CLICK",
+    WRONG_CLICK: "WRONG_CLICK"
+}

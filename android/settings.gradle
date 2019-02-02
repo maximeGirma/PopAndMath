@@ -1,0 +1,3 @@
+rootProject.name = 'PopAndMath'
+
+include ':app'
