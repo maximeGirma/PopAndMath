@@ -11,7 +11,7 @@ export class PopperData{
     }
 
     setValue(value){
-        this.value = value
+        this.value = parseInt(value)
 
     }
 
@@ -35,6 +35,7 @@ export class PopperData{
     }
 
     getLeftPosition(){
+        console.log(this.coordinates)
         return this.coordinates.leftPosition
     }
 

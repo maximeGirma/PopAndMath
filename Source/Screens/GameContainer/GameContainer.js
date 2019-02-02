@@ -11,10 +11,12 @@ export default class GameContainer extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            poppers : [],
-            popCounter : 0,
-            gameOver:false,
-            poppersDataArray: []
+            poppers: [],
+            popCounter: 0,
+            gameOver: false,
+            poppersDataArray: [],
+            valueArray: [],
+            uniqueKey:0,
         }
 
     }
@@ -25,7 +27,7 @@ export default class GameContainer extends React.Component {
         this.initPoppers()
     }
 
-    restartGame(){
+    restartGame() {
         this.initPoppers()
         // this.setState({gameOver:false})
         // popperStore.dispatch(poppersHasReRendered())
@@ -33,20 +35,20 @@ export default class GameContainer extends React.Component {
     }
 
 
-    randomIntFromInterval(min,max) {
+    randomIntFromInterval(min, max) {
 
-        return Math.floor(Math.random()*(max-min+1)+min);
+        return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
 
-    initPoppersValue(rawPoppersDataArray){
+    initPoppersValue(rawPoppersDataArray) {
         let poppersDataArray = rawPoppersDataArray
         let previousValues = []
         let i = 0
 
-        while (i < poppersDataArray.length){
+        while (i < poppersDataArray.length) {
             let valueToAssign = (Math.random() * (100 - 3) + 3).toFixed()
-            if (previousValues.includes(valueToAssign)){
+            if (previousValues.includes(valueToAssign)) {
                 //nope
             } else {
                 poppersDataArray[i].setValue(valueToAssign)
@@ -77,7 +79,7 @@ export default class GameContainer extends React.Component {
         }
     }
 
-    initPoppers(){
+    initPoppers() {
 
         // TODO: export init logic in PopperList object
 
@@ -85,68 +87,86 @@ export default class GameContainer extends React.Component {
         let poppersDataArray = []
         //initialise poppers
         for (let i = 0; i < popperNumber; i++) {
-            poppersDataArray.push(new PopperData(i))
+            poppersDataArray.push(new PopperData(i + this.state.uniqueKey))
         }
 
         poppersDataArray = this.initPoppersValue(poppersDataArray)
-
+        let valueArray = []
         for (let i = 0; i < poppersDataArray.length; i++) {
             poppersDataArray[i].setCoordinates(this.initPoppersCoordinates(i))
             poppersDataArray[i].initOperation()
-
+            console.log(poppersDataArray[i].getValue())
+            valueArray.push(poppersDataArray[i].getValue())
         }
         console.log(poppersDataArray)
-        this.setState({poppersDataArray})
+        this.setState({
+            poppersDataArray,
+            valueArray,
+            uniqueKey: this.state.uniqueKey += popperNumber
+        })
     }
 
-    pop(key){
+    pop(value) {
         console.log("split a popper")
-        let nextPoppersDataArray = []
-        for(let i =0; i < this.state.poppersDataArray.length; i++){
-            if (key === this.state.poppersDataArray[i].key){
-                nextPoppersDataArray = this.state.poppersDataArray
-                nextPoppersDataArray.splice(i,1)
-
-            }
-        }
+        let nextValueArray = []
+        let indexToRemove = this.state.valueArray.indexOf(value)
+        nextValueArray = this.state.valueArray
+        nextValueArray.splice(indexToRemove, 1)
 
         this.setState({
-                poppersDataArray: nextPoppersDataArray,
+                valueArray: nextValueArray,
                 popCounter: this.state.popCounter += 1,
             },
             () => {
-                if (nextPoppersDataArray.length === 0) {
+                console.log("let'see if we should reboot")
+                console.log(nextValueArray.length === 0)
+                console.log(nextValueArray.length)
+                if (nextValueArray.length === 0) {
                     this.restartGame()
                 }
-            })
-
-
-
+            }
+        )
     }
 
-    onPopperPress(pressedPopper){
+    onPopperPress(pressedPopper) {
         console.log("pressed")
-        let minValue = 101
-        this.state.poppersDataArray.map((popper)=>{
-            if (minValue > popper.getValue()){
-                minValue = popper.getValue()
+        let minValue = 1001
+        console.log(minValue)
+        console.log(pressedPopper.getValue())
+
+        for (let i =0; i < this.state.valueArray.length; i++){
+            console.log(this.state.valueArray[i], "<", minValue )
+            console.log(this.state.valueArray[i] < minValue)
+            if (this.state.valueArray[i] < minValue) {
+                minValue = this.state.valueArray[i]
             }
-        })
+        }
+
+        // this.state.valueArray.map((value) => {
+        //     console.log("valueà tester: ", value)
+        //     if (minValue > value) {
+        //         minValue = value
+        //     }
+        // })
+        console.log("test value")
+        console.log(pressedPopper.getValue(), minValue)
         console.log(pressedPopper.getValue() === minValue)
-        if (pressedPopper.getValue() === minValue){
-            this.pop(pressedPopper.key)
-        } else{
+        if (pressedPopper.getValue() === minValue) {
+            this.pop(pressedPopper.getValue())
+            return true
+        } else {
+            return false
             //TODO: loose on wrong press?
         }
     }
 
-    renderPoppers(){
-        return this.state.poppersDataArray.map((item)=>{
+    renderPoppers() {
+        return this.state.poppersDataArray.map((item) => {
             return <Popper
                 key={item.key}
                 item={item}
-                onPress={()=>{
-                    this.onPopperPress(item)
+                onPress={() => {
+                    return this.onPopperPress(item)
                 }}
             />
         })
@@ -156,32 +176,30 @@ export default class GameContainer extends React.Component {
     render() {
         return (
             <View style={{
-                flex:1,
-                height:'100%',
-                width:'100%',
-                backgroundColor:'#ffffe7'
+                flex: 1,
+                height: '100%',
+                width: '100%',
+                backgroundColor: '#ffffe7'
             }}>
-        {/*        <OutOfTimeAlert
+                {/*        <OutOfTimeAlert
                     shouldRender={this.state.gameOver}
                     restartGame={()=>this.restartGame()}
                 />*/}
                 <View
-                style={{
-                    width:'100%',
-                    height:'10%',
-                    flexDirection :'row',
-                    alignItems:'center',
-                    borderWidth:1,
-                    justifyContent:'space-around',
-                }}
-                >
-                <Text
                     style={{
-
+                        width: '100%',
+                        height: '10%',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        borderWidth: 1,
+                        justifyContent: 'space-around',
                     }}
                 >
-                    POPPED : {this.state.popCounter} !
-                </Text>
+                    <Text
+                        style={{}}
+                    >
+                        POPPED : {this.state.popCounter} !
+                    </Text>
                     {/*<MilliTimer
                         counterHasEnded={()=>popperStore.dispatch(resetPopCounter(GAME_OVER_REASONS.TIME))}
                         ref={(ref) => {

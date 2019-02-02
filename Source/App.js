@@ -9,6 +9,7 @@
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View} from 'react-native';
 import GameContainer from "./Screens/GameContainer/GameContainer";
+import Popper from "./Components/Popper/Popper";
 
 
 export default class App extends React.Component {
